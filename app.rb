@@ -4,9 +4,16 @@ Bundler.require(:default)
 require './models'
 require 'json'
 
+set :public_folder, 'assets'
+
 get '/' do
   @counters = Counter.all
   erb :index
+end
+
+get '/counters/:id.json' do
+  @counter = Counter.find(params[:id])
+  JSON.generate(@counter.as_json)
 end
 
 get '/counters/:id' do

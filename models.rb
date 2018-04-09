@@ -7,6 +7,6 @@ ActiveRecord::Base.establish_connection(
 
 class Counter < ActiveRecord::Base
   def as_json
-    {name: name, count: count}
+    {id: id, name: name, count: count}
   end
 end

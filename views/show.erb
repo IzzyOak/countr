@@ -1,4 +1,8 @@
 <html>
+<head>
+  <script src="/react.production.min.js" type="text/javascript"></script>
+  <script src="/react-dom.production.min.js" type="text/javascript"></script>
+</head>
 <body>
 <div id="counter"></div>
 <div>
@@ -14,9 +18,93 @@
   </ul>
 </body>
 <script type="text/javascript">
-var counter = <%= JSON.generate(@counter.as_json) %>
+var counterData = <%= JSON.generate(@counter.as_json) %>;
+var counterId = <%= @counter.id %>;
+
+class Counter extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {count: "loading", name: "loading"};
+  }
+  
+  componentDidMount(){
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/counters/" + this.props.id + ".json");
+    xhr.onreadystatechange = function(){
+      if (xhr.readyState === 4){
+        this.setState(JSON.parse(xhr.response));
+      }
+    }.bind(this)
+    xhr.send(JSON.stringify({counter: {count: this.state.count}}));
+  }
+  
+  sendToServer(){
+    var xhr = new XMLHttpRequest();
+    xhr.open("PUT", "/counters/" + this.props.id);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function(){
+      if (xhr.readyState === 4){
+        //this.setState({chain_length: JSON.parse(xhr.response).chain_length});
+      }
+    }.bind(this)
+    xhr.send(JSON.stringify({counter: {count: this.state.count}}));
+  }
+  
+  clickHandler(){
+    this.setState((prevState, props) => ({
+        count: prevState.count + 1
+    }), this.sendToServer.bind(this));
+  }
+  
+  render(){
+    return [
+      React.createElement('h1', null, this.state.name),
+      React.createElement('p', null, "Count: " + this.state.count),
+      React.createElement('button', {onClick: this.clickHandler.bind(this)}, "Click me")
+    ];
+  }
+}
+
+ReactDOM.render(
+  React.createElement(Counter, {id: 1}, null),
+  document.getElementById('counter')
+);
+
+/*
+class Counter{
+  constructor(selector, data){
+    this.data = data;
+    this.container = document.querySelector(selector);
+    this.render();
+  }
+  
+  increment(){
+    this.data.count++;
+    this.render();
+    this.sendToServer();
+  }
+  
+  render(){
+    var self = this;
+    this.container.innerHTML = '';
+    var counter = document.createElement('p');
+    counter.innerHTML = "Count: " + this.data.count;
+    this.container.appendChild(counter);
+  
+    var button = document.createElement('button');
+    button.innerHTML = "Click Me"
+    this.container.appendChild(button);
+  
+    button.addEventListener('click', function(){
+      self.increment();
+    });
+  }
+}
+
 
 // Your code goes here
+var myCounter = new Counter('#counter', counterData)
+*/
 
 </script>
 </html>
